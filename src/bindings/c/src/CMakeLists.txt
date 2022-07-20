@@ -12,8 +12,13 @@ file(GLOB HEADERS ${InferenceEngine_C_API_SOURCE_DIR}/include/*.h)
 add_library(${TARGET_NAME} ${HEADERS} ${SOURCES})
 add_library(openvino::runtime::c ALIAS ${TARGET_NAME})
 
-find_package(OpenCL REQUIRED)
-target_link_libraries(${TARGET_NAME} PRIVATE openvino ${OpenCL_LIBRARY})
+find_package(OpenCL QUIET)
+if(NOT OpenCL_FOUND)
+    MESSAGE(WARNING "OpenCL is disabled or not found, ${TARGET_NAME} will be built without OpenCL support. Install OpenCL.")
+    target_link_libraries(${TARGET_NAME} PRIVATE openvino)
+else()
+    target_link_libraries(${TARGET_NAME} PRIVATE openvino ${OpenCL_LIBRARY})
+endif()
 
 target_include_directories(${TARGET_NAME} PUBLIC
     $<BUILD_INTERFACE:${InferenceEngine_C_API_SOURCE_DIR}/include>)
